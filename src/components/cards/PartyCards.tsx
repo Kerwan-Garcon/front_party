@@ -24,6 +24,18 @@ function PartyCards({ partys }: { partys: Event[] }) {
       party.date
     );
 
+    const TYPE_PARTY = {
+      PARTY: {
+        image: "/images/party.jpg",
+      },
+      VIDEO_GAME: {
+        image: "/images/games.png",
+      },
+      BOARD_GAME: {
+        image: "/images/board.png",
+      },
+    };
+
     return (
       <Card
         className="min-h-[500] flex flex-col justify-between"
@@ -34,9 +46,9 @@ function PartyCards({ partys }: { partys: Event[] }) {
             {party.name} - {party.organizer.name}
           </h3>
           <Image
-            src={"/images/desktop-screen.webp"}
-            width={25}
-            height={25}
+            src={TYPE_PARTY[party.type].image}
+            width={250}
+            height={250}
             alt="..."
             className="rounded-md w-full h-[200px] object-cover"
           />

@@ -11,7 +11,10 @@ import { addUsers, deleteUser, updateUser } from "../../api/mutations/users";
 import { CreateUpdateUser, User } from "@/utils/interfaces/users.interfaces";
 import { useRouter } from "next/navigation";
 import { useAxiosConfig } from "@/api/api";
+import { toast } from "sonner";
+
 import { useCookies } from "next-client-cookies";
+import { CustomError } from "@/utils/interfaces/errors.interfaces";
 
 export const useUsers = () => {
   useAxiosConfig();
@@ -92,6 +95,10 @@ export const useAuth = () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       set("token", data.access_token);
       router.push("/home");
+      toast.success("Logged in successfully");
+    },
+    onError: (error) => {
+      toast.error("Invalid credentials");
     },
   });
 

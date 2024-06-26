@@ -1,3 +1,4 @@
+import CookieProvider from "@/components/providers/cookie-providers";
 import { ModalProvider } from "@/components/providers/modal-providers";
 import { ThemeProvider } from "@/components/providers/theme-providers";
 import React from "react";
@@ -10,8 +11,10 @@ function Provider({ children }: { children: React.ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <ModalProvider />
-      {children}
+      <CookieProvider>
+        <ModalProvider />
+        {children}
+      </CookieProvider>
     </ThemeProvider>
   );
 }
