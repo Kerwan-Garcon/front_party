@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Provider from "./provider";
+import { ReactQueryClientProvider } from "@/components/providers/react-query";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,9 +18,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <Provider>{children}</Provider>
-      </body>
+      <ReactQueryClientProvider>
+        <body className={inter.className}>
+          <Provider>{children}</Provider>
+        </body>
+      </ReactQueryClientProvider>
     </html>
   );
 }

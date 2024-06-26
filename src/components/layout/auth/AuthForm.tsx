@@ -1,11 +1,15 @@
-import React from "react";
+"use client";
+import React, { useState } from "react";
 import Link from "next/link";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/api/useUsers";
 
 function AuthForm() {
+  const { signIn, signUp } = useAuth();
+  const [logs, setLogs] = useState({ email: "", password: "" });
+
   return (
     <div className="flex items-center justify-center py-12 h-full">
       <form className="mx-auto grid w-[350px] gap-6">
@@ -23,6 +27,8 @@ function AuthForm() {
               type="email"
               placeholder="m@example.com"
               required
+              value={logs.email}
+              onChange={(e) => setLogs({ ...logs, email: e.target.value })}
             />
           </div>
           <div className="grid gap-2">
@@ -35,9 +41,16 @@ function AuthForm() {
                 Forgot your password?
               </Link>
             </div>
-            <Input id="password" type="password" placeholder="*****" required />
+            <Input
+              value={logs.password}
+              onChange={(e) => setLogs({ ...logs, password: e.target.value })}
+              id="password"
+              type="password"
+              placeholder="*****"
+              required
+            />
           </div>
-          <Button type="submit" className="w-full">
+          <Button type="button" onClick={() => signIn(logs)} className="w-full">
             Login
           </Button>
         </div>

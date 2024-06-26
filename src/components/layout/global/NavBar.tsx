@@ -1,7 +1,6 @@
 import { NavLinks } from "@/components/layout/global/NavLinks";
 import { NavMenu } from "@/components/layout/global/NavMenus";
 import { SearchButtonNav } from "@/components/search/SearchButtonNav";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
 export function Navbar() {
