@@ -10,6 +10,7 @@ import { Event } from "@/utils/interfaces/events.interfaces";
 import { extractDateInformations } from "@/utils/date/format";
 import Link from "next/link";
 import Image from "next/image";
+import { TYPE_PARTY } from "@/utils/constantes";
 
 function PartyCards({ partys }: { partys: Event[] }) {
   if (partys.length === 0)
@@ -24,18 +25,6 @@ function PartyCards({ partys }: { partys: Event[] }) {
       party.date
     );
 
-    const TYPE_PARTY = {
-      PARTY: {
-        image: "/images/party.jpg",
-      },
-      VIDEO_GAME: {
-        image: "/images/games.png",
-      },
-      BOARD_GAME: {
-        image: "/images/board.png",
-      },
-    };
-
     return (
       <Card
         className="min-h-[500] flex flex-col justify-between"
@@ -46,7 +35,7 @@ function PartyCards({ partys }: { partys: Event[] }) {
             {party.name} - {party.organizer.name}
           </h3>
           <Image
-            src={TYPE_PARTY[party.type].image}
+            src={TYPE_PARTY(party).image}
             width={250}
             height={250}
             alt="..."

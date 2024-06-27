@@ -1,4 +1,5 @@
-import { Location } from "./locations.interface";
+import { CreateUpdateLocation, Location } from "./locations.interface";
+import { Participations } from "./participations.interfaces";
 import { User } from "./users.interfaces";
 
 export interface Event {
@@ -16,11 +17,12 @@ export interface Event {
   bringGames: boolean;
   bringEquipment: boolean;
   equipmentDetails?: string;
+  drinksDetails?: string;
   organizerId: number;
   organizer: User;
   games: Game[];
   location: Location;
-  participants: any[];
+  participants: Participations[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,21 +41,21 @@ export enum EventType {
 
 export interface CreateUpdateEvent {
   name: string;
-  location: string;
   type: EventType;
-  date: string;
-  time: string;
+  date: Date;
+  time: Date;
   remainingSpots: number;
   description: string;
   isPaid: boolean;
   price?: number;
-  isPublished: boolean;
   bringDrinks: boolean;
   bringGames: boolean;
   bringEquipment: boolean;
   equipmentDetails?: string;
+  drinksDetails?: string;
   organizerId: number;
   games: { name: string }[];
+  location: CreateUpdateLocation;
 }
 
 export interface EventQueries {

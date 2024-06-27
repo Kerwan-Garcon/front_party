@@ -13,12 +13,9 @@ export interface Location {
 }
 
 export interface CreateUpdateLocation {
-  name: string;
   address: string;
   city: string;
-  state: string;
   zipCode: string;
   country: string;
-  latitude: number;
-  longitude: number;
+  region: string;
 }

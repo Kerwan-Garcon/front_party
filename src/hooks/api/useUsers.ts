@@ -12,9 +12,7 @@ import { CreateUpdateUser, User } from "@/utils/interfaces/users.interfaces";
 import { useRouter } from "next/navigation";
 import { useAxiosConfig } from "@/api/api";
 import { toast } from "sonner";
-
 import { useCookies } from "next-client-cookies";
-import { CustomError } from "@/utils/interfaces/errors.interfaces";
 
 export const useUsers = () => {
   useAxiosConfig();

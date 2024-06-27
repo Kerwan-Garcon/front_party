@@ -1,16 +1,14 @@
 "use client";
 import PartyDetails from "@/components/cards/PartyDetails";
-import { useEvent } from "@/hooks/api/useEvents";
+import { notFound } from "next/navigation";
 import React from "react";
 
 function Page({ params }: { params: { partyId: string } }) {
   const { partyId } = params;
 
-  const { event, eventError, eventLoading } = useEvent(parseInt(partyId));
+  if (!partyId) return notFound();
 
-  return (
-    <div>{eventLoading ? "Loading..." : <PartyDetails event={event} />}</div>
-  );
+  return <div>{<PartyDetails eventId={partyId} />}</div>;
 }
 
 export default Page;
