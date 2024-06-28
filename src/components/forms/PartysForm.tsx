@@ -13,30 +13,48 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   CreateUpdateEvent,
+  Event,
   EventType,
 } from "@/utils/interfaces/events.interfaces";
 import { useState } from "react";
 import { Textarea } from "../ui/textarea";
 import { Checkbox } from "../ui/checkbox";
+import { useCookies } from "next-client-cookies";
+import { jwtDecode } from "jwt-decode";
+import { Icons } from "../Icon";
+import { useEvents } from "@/hooks/api/useEvents";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
-export function PartysForm() {
+export function PartysForm({ event }: { event?: Event }) {
+  const { get } = useCookies();
+
+  const user = jwtDecode(get("token") ?? "").sub;
+
   const [form, setForm] = useState<CreateUpdateEvent>({
-    name: "",
-    type: EventType.PARTY,
-    date: new Date("2024-07-01"),
-    time: new Date("2024-07-01T19:00:00Z"),
-    remainingSpots: 0,
-    description: "",
-    isPaid: true,
-    price: 0,
-    bringDrinks: false,
-    bringGames: false,
-    bringEquipment: false,
-    equipmentDetails: "",
-    drinksDetails: "",
-    organizerId: 1,
-    games: [],
-    location: {
+    name: event?.name || "",
+    type: event?.type || EventType.PARTY,
+    date: new Date(event?.date || "2024-07-01"),
+    time: new Date(event?.time || "2024-07-01T19:00:00Z"),
+    remainingSpots: event?.remainingSpots || 0,
+    description: event?.description || "",
+    isPaid: event?.isPaid || false,
+    price: event?.price || 0,
+    bringDrinks: event?.bringDrinks || false,
+    bringGames: event?.bringGames || false,
+    bringEquipment: event?.bringEquipment || false,
+    equipmentDetails: event?.equipmentDetails || "",
+    drinksDetails: event?.drinksDetails || "",
+    organizerId: event?.organizerId || parseInt(user ?? ""),
+    games: event?.games || [],
+    location: event?.location || {
       address: "",
       city: "",
       zipCode: "",
@@ -64,20 +82,30 @@ export function PartysForm() {
     }
   };
 
-  const handleSubmit = (e: any) => {
+  const { addEvent, updateEvent } = useEvents();
+
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-    console.log(form); // Replace this with your form submission logic
+    {
+      event
+        ? await updateEvent({ eventId: event.id, event: form })
+        : await addEvent(form);
+    }
   };
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">Edit Profile</Button>
+        <Button variant="default" className="flex  gap-4">
+          <Icons.plus className="h-3.5 w-3.5" />
+          {event ? "Edit" : "Add"} party
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] md:max-w-[625px] overflow-y-auto max-h-[750px]">
         <DialogHeader>
-          <DialogTitle>Edit profile</DialogTitle>
+          <DialogTitle> {event ? "Edit" : "Add"} party</DialogTitle>
           <DialogDescription>
-            Make changes to your profile here. Click save when you&apos;re done.
+            {event ? "Edit your party here" : "Add an event here"}. Click save
+            when you&apos;re done.
           </DialogDescription>
         </DialogHeader>
         <div>
@@ -103,13 +131,25 @@ export function PartysForm() {
           >
             Event Type
           </Label>
-          <Input
-            type="text"
-            name="type"
-            value={form.type}
-            onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-          />
+
+          <Select
+            onValueChange={(value: EventType) =>
+              setForm((prevForm) => ({ ...prevForm, type: value }))
+            }
+            defaultValue={form.type}
+          >
+            <SelectTrigger className="">
+              <SelectValue placeholder="Select " />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Party type</SelectLabel>
+                <SelectItem value={EventType.PARTY}>PARTY</SelectItem>
+                <SelectItem value={EventType.VIDEO_GAME}>VIDEO GAME</SelectItem>
+                <SelectItem value={EventType.BOARD_GAME}>BOARD GAME</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
@@ -122,7 +162,7 @@ export function PartysForm() {
           <Input
             type="date"
             name="date"
-            value={form.date.toISOString().slice(0, 10)}
+            value={form.date.toISOString().slice(0, 10) || ""}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
           />
@@ -138,7 +178,7 @@ export function PartysForm() {
           <Input
             type="time"
             name="time"
-            value={form.time.toISOString().slice(11, 16)}
+            value={form.time.toISOString().slice(11, 16) || ""}
             onChange={handleChange}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
           />
@@ -190,23 +230,22 @@ export function PartysForm() {
             }}
             className="mt-1"
           />
-        </div>
-
-        <div>
-          <Label
-            htmlFor="price"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Price
-          </Label>
-          <Input
-            type="number"
-            name="price"
-            value={form.price}
-            onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-            step="0.01"
-          />
+          <div className={form.isPaid ? "" : "hidden"}>
+            <Label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Price
+            </Label>
+            <Input
+              type="number"
+              name="price"
+              value={form.price}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+              step="0.01"
+            />
+          </div>
         </div>
 
         <div>
@@ -224,6 +263,20 @@ export function PartysForm() {
             }}
             className="mt-1"
           />
+          <div className={form.bringDrinks ? "" : "hidden"}>
+            <Label
+              htmlFor="drinksDetails"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Drinks Details
+            </Label>
+            <Textarea
+              name="drinksDetails"
+              value={form.drinksDetails}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
         </div>
 
         <div>
@@ -258,36 +311,20 @@ export function PartysForm() {
             }}
             className="mt-1"
           />
-        </div>
-
-        <div className={form.bringEquipment ? "" : "hidden"}>
-          <Label
-            htmlFor="equipmentDetails"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Equipment Details
-          </Label>
-          <Textarea
-            name="equipmentDetails"
-            value={form.equipmentDetails}
-            onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-          />
-        </div>
-
-        <div>
-          <Label
-            htmlFor="drinksDetails"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Drinks Details
-          </Label>
-          <Textarea
-            name="drinksDetails"
-            value={form.drinksDetails}
-            onChange={handleChange}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
-          />
+          <div className={form.bringEquipment ? "" : "hidden"}>
+            <Label
+              htmlFor="equipmentDetails"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Equipment Details
+            </Label>
+            <Textarea
+              name="equipmentDetails"
+              value={form.equipmentDetails}
+              onChange={handleChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
         </div>
 
         <div>
@@ -369,8 +406,47 @@ export function PartysForm() {
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
           />
         </div>
+        {form.type !== EventType.PARTY && (
+          <div>
+            <Label
+              htmlFor="games"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Games
+            </Label>
+            {form.games.map((game, index) => (
+              <Input
+                key={index}
+                placeholder="Game name"
+                type="text"
+                name="games"
+                value={game.name}
+                onChange={(e) => {
+                  const newGames = [...form.games];
+                  newGames[index] = { name: e.target.value };
+                  setForm((prevForm) => ({
+                    ...prevForm,
+                    games: newGames,
+                  }));
+                }}
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm"
+              />
+            ))}
+            <Button
+              className="mt-4"
+              onClick={() =>
+                setForm((prevForm) => ({
+                  ...prevForm,
+                  games: [...prevForm.games, { name: "" }],
+                }))
+              }
+            >
+              Add game
+            </Button>
+          </div>
+        )}
         <DialogFooter>
-          <Button type="submit">Save changes</Button>
+          <Button onClick={(e) => handleSubmit(e)}>Save changes</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

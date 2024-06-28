@@ -1,8 +1,37 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  MutationCache,
+  QueryClient,
+  QueryClientProvider,
+  QueryKey,
+} from "@tanstack/react-query";
 
-const queryClient = new QueryClient();
+interface MutationMeta {
+  invalidateQueries?: QueryKey[];
+  customInvalidations?: (() => void)[];
+}
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5000,
+    },
+  },
+  mutationCache: new MutationCache({
+    onSuccess: (data, variables, context, mutation) => {
+      const meta = mutation.options.meta as MutationMeta | undefined;
+
+      meta?.invalidateQueries?.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: key });
+      });
+
+      meta?.customInvalidations?.forEach((invalidationFn) => {
+        invalidationFn();
+      });
+    },
+  }),
+});
 
 export const ReactQueryClientProvider = ({
   children,

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const links = [{ name: "X", path: "/home" }];
+const links = [{ name: "profile", path: "/profile" }];
 
 export const NavLinks = () => {
   const params = useParams<{ platform: string; feature: string }>();
@@ -19,16 +19,7 @@ export const NavLinks = () => {
           className="px-0"
           asChild
         >
-          <Link
-            href={link.path + "/" + params.feature}
-            className={
-              link.path === `/browse/${params.platform}`
-                ? "text-primary"
-                : "text-muted-foreground hover:text-primary"
-            }
-          >
-            {link.name}
-          </Link>
+          <Link href={link.path}>{link.name}</Link>
         </Button>
       ))}
     </>

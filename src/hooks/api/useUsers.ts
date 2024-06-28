@@ -15,7 +15,6 @@ import { toast } from "sonner";
 import { useCookies } from "next-client-cookies";
 
 export const useUsers = () => {
-  useAxiosConfig();
   const queryClient = useQueryClient();
 
   const {
@@ -30,24 +29,18 @@ export const useUsers = () => {
 
   const addMutation = useMutation({
     mutationFn: addUsers,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
+    onSuccess: () => {},
   });
 
   const updateMutation = useMutation({
     mutationFn: (data: { userId: number; user: CreateUpdateUser }) =>
       updateUser(data.userId, data.user),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
+    onSuccess: () => {},
   });
 
   const deleteMutation = useMutation({
     mutationFn: (userId: number) => deleteUser(userId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-    },
+    onSuccess: () => {},
   });
 
   return {
@@ -62,7 +55,6 @@ export const useUsers = () => {
 };
 
 export const useUser = (userId: number) => {
-  useAxiosConfig();
   const {
     data: user,
     error: userError,

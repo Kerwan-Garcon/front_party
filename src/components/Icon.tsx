@@ -30,6 +30,13 @@ import {
   User,
   X,
   type IconNode as LucideIcon,
+  Calendar,
+  Home,
+  PlusIcon,
+  MoveHorizontal,
+  MoveHorizontalIcon,
+  FilterIcon,
+  ListOrderedIcon,
 } from "lucide-react";
 
 export type Icon = LucideIcon;
@@ -122,4 +129,10 @@ export const Icons = {
       ></path>
     </svg>
   ),
+  calendar: Calendar,
+  home: Home,
+  plus: PlusIcon,
+  moveHorizontal: MoveHorizontalIcon,
+  filter: FilterIcon,
+  listOrdered: ListOrderedIcon,
 };

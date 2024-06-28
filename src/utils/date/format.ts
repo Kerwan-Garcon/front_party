@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 
-export const extractDateInformations = (date) => {
-  const dt = DateTime.fromISO(date).setLocale("fr");
+export const extractDateInformations = (date: Date) => {
+  const dt = DateTime.fromISO(date.toString()).setLocale("fr");
 
   const formattedDay = dt.day;
   const formattedMonthYear = dt.monthLong;

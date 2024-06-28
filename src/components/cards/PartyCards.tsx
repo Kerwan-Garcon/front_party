@@ -7,10 +7,10 @@ import {
   CardHeader,
 } from "../ui/card";
 import { Event } from "@/utils/interfaces/events.interfaces";
-import { extractDateInformations } from "@/utils/date/format";
 import Link from "next/link";
 import Image from "next/image";
 import { TYPE_PARTY } from "@/utils/constantes";
+import { extractDateInformations } from "@/utils/date/format";
 
 function PartyCards({ partys }: { partys: Event[] }) {
   if (partys.length === 0)

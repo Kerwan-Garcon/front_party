@@ -1,13 +1,10 @@
 export interface Location {
   id: number;
-  name: string;
   address: string;
   city: string;
-  state: string;
   zipCode: string;
   country: string;
-  latitude: number;
-  longitude: number;
+  region: string;
   createdAt: Date;
   updatedAt: Date;
 }

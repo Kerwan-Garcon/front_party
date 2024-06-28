@@ -1,9 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  QueryClient,
+} from "@tanstack/react-query";
 import {
   fetchEvent,
   fetchEventParticipants,
   fetchEvents,
-  fetchEventsParticipations,
+  fetchUserEvents,
 } from "../../api/queries/events";
 import {
   addEvent,
@@ -19,12 +24,20 @@ import {
   EventQueries,
 } from "@/utils/interfaces/events.interfaces";
 import { CustomError } from "@/utils/interfaces/errors.interfaces";
-import { useAxiosConfig } from "@/api/api";
 import { Participations } from "@/utils/interfaces/participations.interfaces";
 import { toast } from "sonner";
+import { useCookies } from "next-client-cookies";
+import { jwtDecode } from "jwt-decode";
+import { AxiosError } from "axios";
+
+const refetchEventRelatedQueries = (queryClient: QueryClient) => {
+  queryClient.refetchQueries({ queryKey: ["events"] });
+  queryClient.refetchQueries({ queryKey: ["event"] });
+  queryClient.refetchQueries({ queryKey: ["userEvents"] });
+  queryClient.refetchQueries({ queryKey: ["participations"] });
+};
 
 export const useEvents = () => {
-  useAxiosConfig();
   const queryClient = useQueryClient();
 
   const {
@@ -34,13 +47,18 @@ export const useEvents = () => {
     refetch: refetchEvents,
   } = useQuery<EventQueries, CustomError>({
     queryKey: ["events"],
-    queryFn: async () => await fetchEvents(),
+    queryFn: fetchEvents,
+    refetchInterval: 60000, // Refetch every minute
   });
 
   const addMutation = useMutation({
     mutationFn: addEvent,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      refetchEventRelatedQueries(queryClient);
+      toast.success("Event added successfully");
+    },
+    onError: (error: AxiosError<CustomError>) => {
+      toast.error(error.response?.data.message);
     },
   });
 
@@ -48,38 +66,48 @@ export const useEvents = () => {
     mutationFn: (data: { eventId: number; event: CreateUpdateEvent }) =>
       updateEvent(data.eventId, data.event),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      refetchEventRelatedQueries(queryClient);
+      toast.success("Event updated successfully");
+    },
+    onError: (error: AxiosError<CustomError>) => {
+      toast.error(error.response?.data.message);
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (eventId: number) => deleteEvent(eventId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
+      refetchEventRelatedQueries(queryClient);
+      toast.success("Event deleted successfully");
+    },
+    onError: (error: AxiosError<CustomError>) => {
+      toast.error(error.response?.data.message);
     },
   });
 
   return {
+    addEvent: addMutation.mutateAsync,
+    updateEvent: updateMutation.mutateAsync,
+    deleteEvent: deleteMutation.mutateAsync,
     events,
     eventsError,
     eventsLoading,
     refetchEvents,
-    addEvent: addMutation.mutate,
-    updateEvent: updateMutation.mutate,
-    deleteEvent: deleteMutation.mutate,
   };
 };
 
 export const useEvent = (eventId: number) => {
-  useAxiosConfig();
+  const queryClient = useQueryClient();
+
   const {
     data: event,
     error: eventError,
     isLoading: eventLoading,
     refetch: refetchEvent,
   } = useQuery<Event, CustomError>({
-    queryKey: ["event", eventId],
+    queryKey: ["event"],
     queryFn: () => fetchEvent(eventId),
+    refetchInterval: 60000, // Refetch every minute
   });
 
   return {
@@ -91,11 +119,12 @@ export const useEvent = (eventId: number) => {
 };
 
 export const useEventsParticipations = (
-  eventId: number,
+  eventId: number | undefined,
   userId: string | undefined
 ) => {
-  useAxiosConfig();
   const queryClient = useQueryClient();
+
+  const queryKey = ["participations", eventId, userId];
 
   const {
     data: participations,
@@ -103,44 +132,72 @@ export const useEventsParticipations = (
     isLoading: participationsLoading,
     refetch: refetchParticipations,
   } = useQuery<Participations, CustomError>({
-    queryKey: ["participations", eventId],
-    queryFn: async () => await fetchEventParticipants(eventId, userId ?? ""),
+    queryKey,
+    queryFn: () => fetchEventParticipants(eventId ?? 0, userId ?? ""),
+    refetchInterval: 60000, // Refetch every minute
+    enabled: !!eventId && !!userId,
   });
 
   const addMutation = useMutation({
     mutationFn: addEventParticipant,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["participations", eventId] });
+    onSuccess: (newParticipation) => {
+      queryClient.setQueryData(
+        queryKey,
+        (oldData: Participations | undefined) => {
+          return { ...oldData, ...newParticipation };
+        }
+      );
       toast.success(
         "Participation asked successfully, it will now be shown in your profile"
       );
+      // Delayed refetch to ensure backend has processed the addition
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey });
+      }, 1000);
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: {
+    mutationFn: (data: {
       eventId: number;
       userId: string;
       participations: Participations;
     }) =>
-      await updateEventParticipant(
-        data.eventId,
-        data.userId,
-        data.participations
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["participations", eventId] });
+      updateEventParticipant(data.eventId, data.userId, data.participations),
+    onSuccess: (updatedParticipation) => {
+      queryClient.setQueryData(
+        queryKey,
+        (oldData: Participations | undefined) => {
+          return { ...oldData, ...updatedParticipation };
+        }
+      );
+      queryClient.refetchQueries({ queryKey });
+      toast.success("Participation status updated successfully");
+    },
+    onError: (error: AxiosError<CustomError>) => {
+      toast.error(error.response?.data.message);
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (data: { eventId: number; userId: string | undefined }) =>
-      await deleteEventParticipant(data.eventId, data.userId ?? ""),
+    mutationFn: (data: { eventId: number; userId: string | undefined }) =>
+      deleteEventParticipant(data.eventId, data.userId ?? ""),
+    onMutate: async (deleteData) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousParticipations =
+        queryClient.getQueryData<Participations>(queryKey);
+      queryClient.setQueryData(queryKey, undefined);
+      return { previousParticipations };
+    },
+    onError: (err, deleteData, context) => {
+      queryClient.setQueryData(queryKey, context?.previousParticipations);
+      toast.error("Failed to delete participation");
+    },
+    onSettled: () => {
+      queryClient.refetchQueries({ queryKey });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["participations", eventId] });
-      toast.success(
-        "Participation deleted successfully, please refresh the page if it doesnt update"
-      );
+      toast.success("Participation deleted successfully");
     },
   });
 
@@ -152,5 +209,30 @@ export const useEventsParticipations = (
     participationsError,
     participationsLoading,
     refetchParticipations,
+  };
+};
+
+export const useUserEvents = () => {
+  const { get } = useCookies();
+  const user = jwtDecode(get("token") ?? "").sub;
+  const queryClient = useQueryClient();
+
+  const {
+    data: userEvents,
+    error: userEventsError,
+    isLoading: userEventsLoading,
+    refetch: refetchUserEvents,
+  } = useQuery<EventQueries, CustomError>({
+    queryKey: ["userEvents", user],
+    queryFn: () => fetchUserEvents(user ?? ""),
+    refetchInterval: 60000, // Refetch every minute
+    enabled: !!user,
+  });
+
+  return {
+    userEvents,
+    userEventsError,
+    userEventsLoading,
+    refetchUserEvents,
   };
 };

@@ -22,3 +22,8 @@ export const fetchEventsParticipations = async () => {
   const { data } = await api.get(`/events/participations`);
   return data;
 };
+
+export const fetchUserEvents = async (userId: string) => {
+  const { data } = await api.get(`/events/user/${userId}`);
+  return data;
+};

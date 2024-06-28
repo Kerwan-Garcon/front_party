@@ -9,7 +9,6 @@ import { useEvent, useEventsParticipations } from "@/hooks/api/useEvents";
 import { useCookies } from "next-client-cookies";
 import { jwtDecode } from "jwt-decode";
 import { Card } from "../ui/card";
-import { revalidateDetails } from "@/actions/server-actions";
 import { TYPE_PARTY } from "@/utils/constantes";
 import { deleteEvent } from "@/api/mutations/events";
 import { PartysForm } from "../forms/PartysForm";
@@ -51,7 +50,6 @@ function PartyDetails({ eventId }: { eventId: string }) {
         <Button
           onClick={async () => {
             await deleteParticipation({ eventId: event.id, userId: user.sub });
-            revalidateDetails(eventId);
           }}
           disabled={participationsLoading}
         >
@@ -87,7 +85,7 @@ function PartyDetails({ eventId }: { eventId: string }) {
   const orgnaizerButtons = () => {
     return (
       <div className="flex flex-col gap-2">
-        <PartysForm />
+        <PartysForm event={event} />
         <Button
           onClick={async () => {
             await deleteEvent(event.id);
@@ -114,7 +112,7 @@ function PartyDetails({ eventId }: { eventId: string }) {
           src={TYPE_PARTY(event).image}
           width={500}
           height={25}
-          className="w-full h-[400px] object-cover bg-primary p-2 "
+          className="w-full h-[400px] object-cover bg-primary p-2 rounded-lg"
           alt="..."
         />
       </section>
@@ -140,7 +138,7 @@ function PartyDetails({ eventId }: { eventId: string }) {
           <p className="mt-4 pl-4 mb-4">{event.description}</p>
           <div className="mt-4 pl-4">{TYPE_PARTY(event).item}</div>
         </div>
-        {!isOrganizer ? orgnaizerButtons() : checkParticipation()}
+        {isOrganizer ? orgnaizerButtons() : checkParticipation()}
       </Card>
     </main>
   );

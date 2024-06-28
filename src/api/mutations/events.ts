@@ -3,7 +3,10 @@ import { api } from "../api";
 import { Participations } from "@/utils/interfaces/participations.interfaces";
 
 export const addEvent = async (event: CreateUpdateEvent) => {
-  const { data } = await api.post("/events", event);
+  const { data } = await api.post("/events", {
+    ...event,
+    remainingSpots: parseInt(event.remainingSpots.toString()),
+  });
   return data;
 };
 
