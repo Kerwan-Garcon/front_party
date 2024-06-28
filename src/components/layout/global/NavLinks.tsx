@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const links = [{ name: "profile", path: "/profile" }];
+const links = [
+  { name: "profile", path: "/profile" },
+  { name: "chat", path: "/chat" },
+  { name: "users", path: "/users" },
+];
 
 export const NavLinks = () => {
   const params = useParams<{ platform: string; feature: string }>();

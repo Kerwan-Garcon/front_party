@@ -75,14 +75,13 @@ function TableEvents(datas: EventQueries) {
           };
 
           return (
-            <>
+            <React.Fragment key={event.id}>
               <TableRow
                 onClick={() => {
                   setShowParticipants((prev) =>
                     prev === event.id ? 0 : event.id
                   );
                 }}
-                key={event.id}
                 className={`${
                   event.participants.length > 0
                     ? "cursor-pointer hover:bg-primary/10"
@@ -130,6 +129,7 @@ function TableEvents(datas: EventQueries) {
               {event.participants.map((participant) => {
                 return (
                   <TableRow
+                    key={participant.user?.id}
                     className={`py-1 ${colors[participant.status]} ${
                       showParticipants === event.id ? "" : "hidden"
                     }`}
@@ -185,7 +185,7 @@ function TableEvents(datas: EventQueries) {
                   </TableRow>
                 );
               })}
-            </>
+            </React.Fragment>
           );
         })}
       </TableBody>

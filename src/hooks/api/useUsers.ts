@@ -8,11 +8,16 @@ import {
   register,
 } from "../../api/queries/users";
 import { addUsers, deleteUser, updateUser } from "../../api/mutations/users";
-import { CreateUpdateUser, User } from "@/utils/interfaces/users.interfaces";
+import {
+  CreateUpdateUser,
+  User,
+  UserQueries,
+} from "@/utils/interfaces/users.interfaces";
 import { useRouter } from "next/navigation";
 import { useAxiosConfig } from "@/api/api";
 import { toast } from "sonner";
 import { useCookies } from "next-client-cookies";
+import { CustomError } from "@/utils/interfaces/errors.interfaces";
 
 export const useUsers = () => {
   const queryClient = useQueryClient();
@@ -22,9 +27,9 @@ export const useUsers = () => {
     error: usersError,
     isLoading: usersLoading,
     refetch: refetchUsers,
-  } = useQuery<User[]>({
+  } = useQuery<UserQueries, CustomError>({
     queryKey: ["users"],
-    queryFn: async () => await fetchUsers(),
+    queryFn: fetchUsers,
   });
 
   const addMutation = useMutation({
@@ -44,7 +49,7 @@ export const useUsers = () => {
   });
 
   return {
-    users: users ?? [],
+    users: users,
     usersError,
     usersLoading,
     refetchUsers,

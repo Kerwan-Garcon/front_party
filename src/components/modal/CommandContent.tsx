@@ -9,11 +9,17 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { useEvents } from "@/hooks/api/useEvents";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import useUrlParams from "@/hooks/useUrlParams";
 import { categoriesCommand, categoriesList } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { TYPE_PARTY } from "@/utils/constantes";
+import { Event, EventType } from "@/utils/interfaces/events.interfaces";
 import { HoverCardPortal } from "@radix-ui/react-hover-card";
+import { Loader } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 interface CommandCategoriesListProps {
@@ -53,9 +59,6 @@ export function Trending() {
     <>
       <Apps />
       <Screens />
-      <UiElements />
-      <Flows />
-      <TextInScreenshot />
     </>
   );
 }
@@ -179,25 +182,28 @@ export function ItemsLinesHoverCard({ title }: { title: string }) {
 
 function Apps() {
   return (
-    <CommandGroup heading="Apps">
+    <CommandGroup heading="PARTY TYPE">
       <div className="flex flex-nowrap gap-x-2 [&_[cmdk-item]]:shrink-0">
-        {Array.from({ length: 7 }).map((_, index) => (
+        {[
+          { type: EventType.BOARD_GAME, icon: "🎲" },
+          {
+            type: EventType.PARTY,
+            icon: "🎉",
+          },
+          {
+            type: EventType.VIDEO_GAME,
+            icon: "🎮",
+          },
+        ].map((data, index) => (
           <CommandItem
             key={index}
             className="group !p-0 md:!bg-transparent rounded-t-2xl"
           >
             <div className="shrink-0 z-10 rounded-t-2xl overflow-hidden md:h-16">
               <div className="flex flex-col items-center gap-y-1 md:group-hover:-translate-y-5 md:group-data-selected:-translate-y-5 transition-transform duration-300 ease-out cursor-pointer">
-                <Image
-                  src={"/images/square-logo.webp"}
-                  alt="square-logo"
-                  width={200}
-                  height={200}
-                  className="shrink-0 rounded-2xl overflow-hidden size-16 object-cover"
-                  priority
-                />
+                <span className="text-6xl"> {data.icon} </span>
                 <span className="shrink-0 text-xs text-center truncate font-normal text-muted-foreground">
-                  Name {index}
+                  {data.type}
                 </span>
               </div>
             </div>
@@ -209,17 +215,28 @@ function Apps() {
 }
 
 function Screens() {
+  const { events, eventsLoading } = useEvents();
+
+  const array = events?.data?.slice(0, 7) || [];
+
+  if (eventsLoading) return <Loader className="animate-spin" />;
+
   return (
-    <CommandGroup heading="Screens">
+    <CommandGroup heading="Party">
       <div className="grid grid-cols-3 gap-2 md:grid-cols-4 max-md:[&>*:nth-child(n+7)]:hidden md:[&>*:nth-child(3)]:col-span-2">
-        {Array.from({ length: 7 }).map((_, index) => (
+        {array.map((data: Event, index) => (
           <CommandItem
             key={index}
-            className="group !p-0 !bg-transparent data-selected"
+            className="group !p-0 !bg-transparent data-selected "
           >
-            <div className="flex flex-col justify-between items-start p-3 bg-muted data-selected-bg rounded-2xl overflow-hidden size-full max-h-52 md:max-h-32 aspect-square cursor-pointer transition duration-300 ease-out">
-              <span className="text-sm">Screens {index}</span>
-              <Icons.bookmark className="size-9 ml-2 mb-3" />
+            <div className=" hover:bg-primary/50  p-3 bg-muted data-selected-bg rounded-2xl overflow-hidden size-full max-h-52 md:max-h-32 aspect-square cursor-pointer transition duration-300 ease-out">
+              <Link
+                className="w-full h-full flex flex-col justify-between items-start"
+                href={`party/${data.id}`}
+              >
+                <span className="text-sm">{data.name}</span>
+                {TYPE_PARTY(data).icon}
+              </Link>
             </div>
           </CommandItem>
         ))}

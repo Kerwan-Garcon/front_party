@@ -28,3 +28,12 @@ export interface CreateUpdateUser {
   interests: string[];
   isOrganizer: boolean;
 }
+
+export interface UserQueries {
+  data: User[];
+  error?: string;
+  page?: number;
+  total?: number;
+  statusCode?: number;
+  limit?: number;
+}
